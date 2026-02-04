@@ -78,13 +78,33 @@ const Score: React.FC<ScoreProps> = ({ notes }) => {
             }
         });
 
+        // Helper to create VexFlow notes with accidentals
+        const createVexFlowNotes = (noteDataList: NoteData[], clef: string) => {
+            return noteDataList.map(n => {
+                const note = new VF.StaveNote({
+                    keys: n.keys,
+                    duration: n.duration,
+                    clef: clef
+                });
+
+                // Add accidentals if present in keys (e.g., "c#/4")
+                n.keys.forEach((key, index) => {
+                    const [pitch] = key.split('/');
+                    // Check for accidentals: #, b, n (natural)
+                    // VexFlow expects the accidental symbol itself, e.g., "#", "b", "##", "bb", "n"
+                    const accidentalMatch = pitch.match(/([#bn]+)$/);
+                    if (accidentalMatch) {
+                        const accidentalSymbol = accidentalMatch[1];
+                        note.addModifier(new VF.Accidental(accidentalSymbol), index);
+                    }
+                });
+                return note;
+            });
+        };
+
         // 3. Render Treble Voice
         if (trebleNotesData.length > 0) {
-            const trebleVexNotes = trebleNotesData.map(n => new VF.StaveNote({
-                keys: n.keys,
-                duration: n.duration,
-                clef: "treble"
-            }));
+            const trebleVexNotes = createVexFlowNotes(trebleNotesData, "treble");
 
             const trebleVoice = new VF.Voice({ numBeats: 4, beatValue: 4 });
             trebleVoice.setMode(VF.Voice.Mode.SOFT);
@@ -96,11 +116,7 @@ const Score: React.FC<ScoreProps> = ({ notes }) => {
 
         // 4. Render Bass Voice
         if (bassNotesData.length > 0) {
-            const bassVexNotes = bassNotesData.map(n => new VF.StaveNote({
-                keys: n.keys,
-                duration: n.duration,
-                clef: "bass"
-            }));
+            const bassVexNotes = createVexFlowNotes(bassNotesData, "bass");
 
             const bassVoice = new VF.Voice({ numBeats: 4, beatValue: 4 });
             bassVoice.setMode(VF.Voice.Mode.SOFT);

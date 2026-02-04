@@ -7,52 +7,50 @@ interface NoteData {
     duration: string;
 }
 
-export const useSheetMusic = () => {
+export const useSheetMusic = (roomName: string = 'sheet-music-demo') => {
     const [notes, setNotes] = useState<NoteData[]>([]);
     const ydocRef = useRef<Y.Doc>(new Y.Doc());
     const providerRef = useRef<WebsocketProvider | null>(null);
-    const notesArrayRef = useRef<Y.Array<NoteData> | null>(null);
 
     useEffect(() => {
-        const doc = ydocRef.current;
+        const ydoc = ydocRef.current;
+        const yNotes = ydoc.getArray<NoteData>('notes');
 
-        // Connect to the WebSocket server
-        // Using a specific room name "sheet-music-demo"
+        // Connect to WebSocket Provider with dynamic room name
         const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:1234';
-        const provider = new WebsocketProvider(wsUrl, 'sheet-music-demo', doc);
+
+        // Clean up previous provider if it exists
+        if (providerRef.current) {
+            providerRef.current.destroy();
+        }
+
+        const provider = new WebsocketProvider(wsUrl, roomName, ydoc);
         providerRef.current = provider;
 
-        const yNotes = doc.getArray<NoteData>('notes');
-        notesArrayRef.current = yNotes;
-
-        // Initial Sync
+        // Sync initial state
         setNotes(yNotes.toArray());
 
         // Listen for updates
-        yNotes.observe(() => {
+        const observeHandler = () => {
             setNotes(yNotes.toArray());
-        });
+        };
+        yNotes.observe(observeHandler);
 
         return () => {
-            provider.disconnect();
+            yNotes.unobserve(observeHandler);
+            provider.destroy();
+            providerRef.current = null;
         };
-    }, []);
+    }, [roomName]); // Re-run when roomName changes
 
     const addNote = (note: NoteData) => {
-        if (notesArrayRef.current) {
-            // Wrap in transaction for atomicity (optional for single push)
-            ydocRef.current.transact(() => {
-                notesArrayRef.current?.push([note]);
-            });
-        }
+        const yNotes = ydocRef.current.getArray<NoteData>('notes');
+        yNotes.push([note]);
     };
 
     const clearNotes = () => {
-        if (notesArrayRef.current) {
-            ydocRef.current.transact(() => {
-                notesArrayRef.current?.delete(0, notesArrayRef.current.length);
-            });
-        }
+        const yNotes = ydocRef.current.getArray<NoteData>('notes');
+        yNotes.delete(0, yNotes.length);
     };
 
     return { notes, addNote, clearNotes };

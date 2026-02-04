@@ -23,79 +23,101 @@
   align-items: center;
 }
 
-.controls-panel {
+/* Room Controls */
+.room-controls {
+  margin-top: 1rem;
   display: flex;
-  flex-wrap: wrap;
-  gap: 2rem;
   justify-content: center;
+  gap: 0.5rem;
+}
+
+.room-input {
+  padding: 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  font-size: 0.9rem;
+  width: 200px;
+}
+
+.room-status {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: 0.5rem;
+}
+
+/* Composer Panel */
+.composer-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
   background: #f8fafc;
   padding: 1.5rem;
   border-radius: 12px;
   border: 1px solid #e2e8f0;
+  width: 100%;
+  max-width: 600px;
 }
 
-.control-group h3 {
-  margin: 0 0 1rem 0;
-  font-size: 0.9rem;
+.composer-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.composer-group label {
+  font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: #475569;
+  font-weight: 600;
 }
 
-.button-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 0.5rem;
+.toggle-group {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
 }
 
-button {
-  padding: 0.75rem;
+/* Base button styles from before, plus active state */
+button.active {
+  background-color: #2563eb;
+  color: white;
+  border-color: #1d4ed8;
+}
+
+button.active:hover {
+  background-color: #1d4ed8;
+}
+
+select {
+  padding: 0.6rem;
   border-radius: 6px;
   border: 1px solid #cbd5e1;
-  background: white;
-  color: #334155;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
   font-size: 0.9rem;
+  background-color: white;
 }
 
-button:hover {
-  border-color: #3b82f6;
-  background: #eff6ff;
-  color: #2563eb;
-  transform: translateY(-1px);
-}
-
-.note-btn {
-  min-width: 40px;
-}
-
-.utility-btn {
-  background: #f1f5f9;
-}
-
-.danger-btn {
-  background-color: #fef2f2;
-  border-color: #fecaca;
-  color: #dc2626;
-}
-
-.danger-btn:hover {
-  background-color: #fee2e2;
-  border-color: #ef4444;
-  color: #b91c1c;
-}
-
-.actions {
+.composer-actions {
   display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  gap: 0.5rem;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.primary-btn {
+  flex: 1;
+  background-color: #1a1a1a;
+  color: white;
+  border-color: transparent;
+}
+
+.primary-btn:hover {
+  background-color: #333;
+  color: white;
 }
 
 .score-wrapper {
   margin-top: 1rem;
+  overflow-x: auto;
 }
 
 .hint {

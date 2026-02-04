@@ -1,52 +1,105 @@
-#root {
-  max-width: 1280px;
+.app-container {
+  max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #1e293b;
+}
+
+.app-header {
+  margin-bottom: 2rem;
   text-align: center;
 }
 
-.card {
-  padding: 2em;
+.subtitle {
+  color: #64748b;
+  font-size: 1.1rem;
 }
 
-.controls {
+.main-content {
   display: flex;
-  gap: 1em;
+  flex-direction: column;
+  gap: 2rem;
+  align-items: center;
+}
+
+.controls-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
   justify-content: center;
-  margin-bottom: 2em;
+  background: #f8fafc;
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.control-group h3 {
+  margin: 0 0 1rem 0;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #475569;
+}
+
+.button-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.5rem;
 }
 
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  background: white;
+  color: #334155;
+  font-weight: 600;
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: all 0.2s;
+  font-size: 0.9rem;
 }
 
 button:hover {
-  border-color: #646cff;
+  border-color: #3b82f6;
+  background: #eff6ff;
+  color: #2563eb;
+  transform: translateY(-1px);
+}
+
+.note-btn {
+  min-width: 40px;
+}
+
+.utility-btn {
+  background: #f1f5f9;
 }
 
 .danger-btn {
-  background-color: #8b2222;
+  background-color: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
 }
 
 .danger-btn:hover {
-  border-color: #ff4444;
+  background-color: #fee2e2;
+  border-color: #ef4444;
+  color: #b91c1c;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.5rem;
 }
 
 .score-wrapper {
-  display: flex;
-  justify-content: center;
-  margin: 20px 0;
+  margin-top: 1rem;
 }
 
 .hint {
-  color: #888;
+  color: #94a3b8;
+  font-size: 0.9rem;
   margin-top: 2rem;
 }

@@ -18,9 +18,10 @@
 
 .main-content {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 2rem;
-  align-items: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
 }
 
 /* Room Controls */
@@ -55,7 +56,8 @@
   border-radius: 12px;
   border: 1px solid #e2e8f0;
   width: 100%;
-  max-width: 600px;
+  max-width: 350px;
+  flex: 0 0 350px;
 }
 
 .composer-group {
@@ -116,12 +118,39 @@ select {
 }
 
 .score-wrapper {
-  margin-top: 1rem;
+  margin-top: 0;
   overflow-x: auto;
+  flex: 1;
+  min-width: 300px;
+  /* Prevent it from getting too small */
+  background: white;
+  /* Optional: if you want it to look distinct */
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+@media (max-width: 850px) {
+  .main-content {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .composer-panel {
+    max-width: 600px;
+    flex: initial;
+  }
+
+  .score-wrapper {
+    width: 100%;
+    min-width: 0;
+  }
 }
 
 .hint {
   color: #94a3b8;
   font-size: 0.9rem;
   margin-top: 2rem;
+  width: 100%;
+  text-align: center;
 }

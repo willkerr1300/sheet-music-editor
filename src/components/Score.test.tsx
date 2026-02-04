@@ -41,13 +41,13 @@ vi.mock('vexflow', async () => {
 
 describe('Score Component', () => {
     it('renders without crashing', () => {
-        const { container } = render(<Score notes={[]} />);
+        const { container } = render(<Score notes={[]} timeSignature="4/4" />);
         expect(container).toBeInTheDocument();
     });
 
     it('renders with notes', () => {
         const notes = [{ keys: ['c/4'], duration: 'q' }];
-        const { container } = render(<Score notes={notes} />);
+        const { container } = render(<Score notes={notes} timeSignature="4/4" />);
         expect(container).toBeDefined();
     });
 });

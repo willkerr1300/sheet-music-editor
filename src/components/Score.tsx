@@ -103,7 +103,7 @@ const Score: React.FC<ScoreProps> = ({ notes, timeSignature }) => {
         // We need to group by "Systems" (lines).
         // Let's iterate measures and place staves.
 
-        measures.forEach((measureNotes, i) => {
+        measures.forEach((measureNotes) => {
             // Determine width. First measure of system needs clef/time sig.
 
             let width = 250; // default width for a measure

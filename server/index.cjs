@@ -50,7 +50,7 @@ wss.on('connection', (conn, req) => {
 });
 
 // Fallback: For any request not handled (e.g., refresh on a route), serve index.html
-app.get('*', (req, res) => {
+app.get('(.*)', (req, res) => {
     res.sendFile(path.join(distPath, 'index.html'));
 });
 

@@ -214,7 +214,14 @@ const Score: React.FC<ScoreProps> = ({ notes, timeSignature }) => {
 
             // Format and Draw
             if (voices.length > 0) {
-                new VF.Formatter().joinVoices(voices).format(voices, width - 20); // -20 padding
+                // Calculate available width. 
+                // trebleStave.getNoteStartX() returns the x coordinate where notes begin.
+                // stave.getX() returns the start x of the stave.
+                // useful width = stave.getWidth() - (stave.getNoteStartX() - stave.getX()) - padding
+                const startX = trebleStave.getNoteStartX();
+                const availableWidth = Math.max(50, width - (startX - trebleStave.getX()) - 10);
+
+                new VF.Formatter().joinVoices(voices).format(voices, availableWidth);
 
                 if (trebleVoice) trebleVoice.draw(context, trebleStave);
                 if (bassVoice) bassVoice.draw(context, bassStave);

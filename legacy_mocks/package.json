@@ -1,0 +1,14 @@
+{
+  "name": "collaborative-sheet-music",
+  "version": "1.0.0",
+  "description": "Real-time collaborative sheet music editor using CRDTs",
+  "main": "index.js",
+  "scripts": {
+    "test": "node metrics_test.js"
+  },
+  "dependencies": {
+    "yjs": "^13.5.0",
+    "vexflow": "^4.0.0",
+    "ws": "^8.0.0"
+  }
+}

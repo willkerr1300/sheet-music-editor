@@ -178,10 +178,13 @@ const Score: React.FC<ScoreProps> = ({ notes, timeSignature }) => {
                         clef: clef
                     });
                     n.keys.forEach((key, index) => {
-                        const [pitch] = key.split('/');
-                        const accidentalMatch = pitch.match(/([#bn]+)$/);
-                        if (accidentalMatch) {
-                            note.addModifier(new VF.Accidental(accidentalMatch[1]), index);
+                        const [pitchPart] = key.split('/');
+                        // pitchPart is something like "c", "c#", "db", "b", "bb"
+                        // The first character is always the note name (c,d,e,f,g,a,b)
+                        // The rest is the accidental
+                        const accidentalSymbol = pitchPart.substring(1);
+                        if (accidentalSymbol) {
+                            note.addModifier(new VF.Accidental(accidentalSymbol), index);
                         }
                     });
                     return note;

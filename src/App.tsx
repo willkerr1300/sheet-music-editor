@@ -14,6 +14,9 @@ function App() {
   const [duration, setDuration] = useState('q');
   const [isRest, setIsRest] = useState(false);
 
+  // Staging for Chord
+  const [pendingKeys, setPendingKeys] = useState<string[]>([]);
+
   // Pass roomName to hook
   const { notes, addNote, clearNotes, timeSignature, updateTimeSignature } = useSheetMusic(roomName);
 
@@ -23,17 +26,42 @@ function App() {
     }
   };
 
-  const handleAddNote = () => {
-    // Construct key: "c#/4" or "db/4" or "c/4"
-    // If rest, key doesn't matter as much but VexFlow often likes "b/4" for default rest pos
+  const getCurrentKey = () => {
     let key = `${pitch}${accidental}/${octave}`;
     if (isRest) {
-      // Standard rest position often middle of staff like b/4
       key = `b/4`;
     }
+    return key;
+  };
 
+  const handleStageNote = () => {
+    if (isRest) return; // Don't stage rests into chords for now (simplification)
+    const key = getCurrentKey();
+    if (!pendingKeys.includes(key)) {
+      setPendingKeys([...pendingKeys, key]);
+    }
+  };
+
+  const handleAddNote = () => {
+    // If we have pending keys, those plus current selection? 
+    // Plan: if pendingKeys > 0, insert ONLY pendingKeys? 
+    // Or insert pendingKeys AND current? 
+    // Let's implement: "Stage" button adds to list. "Insert" button commits list (if > 0) OR commits single note (if list==0).
+
+    let keysToInsert: string[] = [];
     const dur = isRest ? `${duration}r` : duration;
-    addNote({ keys: [key], duration: dur });
+
+    if (pendingKeys.length > 0) {
+      keysToInsert = [...pendingKeys];
+      // If user also wants to include the currently "selected" note, they should have staged it.
+      // This is cleaner UX: "Builder" mode vs "Direct" mode.
+    } else {
+      // Direct mode: single note/rest
+      keysToInsert = [getCurrentKey()];
+    }
+
+    addNote({ keys: keysToInsert, duration: dur });
+    setPendingKeys([]); // Clear staging
   };
 
   return (
@@ -129,8 +157,28 @@ function App() {
           </div>
 
           <div className="composer-actions">
-            <button onClick={handleAddNote} className="primary-btn">Insert Note / Rest</button>
-            <button onClick={clearNotes} className="danger-btn">Clear Score</button>
+            <div className="chord-controls" style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '10px' }}>
+              <button
+                onClick={handleStageNote}
+                className="utility-btn"
+                disabled={isRest}
+                style={{ flex: 1 }}
+              >
+                Add to Chord
+              </button>
+              <div className="pending-notes" style={{ fontSize: '0.9rem', color: '#666' }}>
+                {pendingKeys.length > 0 ? (
+                  <span>Staged: <strong>{pendingKeys.join(', ')}</strong></span>
+                ) : (
+                  <span>(Optional: Add multiple notes)</span>
+                )}
+              </div>
+            </div>
+
+            <button onClick={handleAddNote} className="primary-btn">
+              {pendingKeys.length > 0 ? `Insert Chord (${pendingKeys.length})` : 'Insert Note / Rest'}
+            </button>
+            <button onClick={() => { clearNotes(); setPendingKeys([]); }} className="danger-btn">Clear Score</button>
           </div>
         </div>
 

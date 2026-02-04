@@ -40,7 +40,7 @@ function App() {
     <div className="app-container">
       <header className="app-header">
         <h1>Collaborative Sheet Music Editor</h1>
-        <p className="subtitle">Real-time collaboration with Grand Staff support</p>
+
 
         <div className="room-controls">
           <input

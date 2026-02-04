@@ -15,7 +15,7 @@ function App() {
   const [isRest, setIsRest] = useState(false);
 
   // Pass roomName to hook
-  const { notes, addNote, clearNotes } = useSheetMusic(roomName);
+  const { notes, addNote, clearNotes, timeSignature, updateTimeSignature } = useSheetMusic(roomName);
 
   const handleJoinRoom = () => {
     if (tempRoom.trim()) {
@@ -118,6 +118,16 @@ function App() {
             </button>
           </div>
 
+          <div className="composer-group">
+            <label>Time Sig</label>
+            <select value={timeSignature} onChange={(e) => updateTimeSignature(e.target.value)}>
+              <option value="4/4">4/4</option>
+              <option value="3/4">3/4</option>
+              <option value="2/4">2/4</option>
+              <option value="6/8">6/8</option>
+            </select>
+          </div>
+
           <div className="composer-actions">
             <button onClick={handleAddNote} className="primary-btn">Insert Note / Rest</button>
             <button onClick={clearNotes} className="danger-btn">Clear Score</button>
@@ -125,7 +135,7 @@ function App() {
         </div>
 
         <div className="score-wrapper">
-          <Score notes={notes} />
+          <Score notes={notes} timeSignature={timeSignature} />
         </div>
 
         <p className="hint">

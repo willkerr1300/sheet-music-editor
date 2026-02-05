@@ -48,7 +48,6 @@ This project is configured for deployment on **Render** as a single web service.
 
 *   **Build Command**: `npm install && npm run build`
 *   **Start Command**: `node server/index.cjs`
-*   **Environment Variable**: `VITE_WS_URL=wss://your-app-name.onrender.com`
 
 ## 🧪 Testing
 

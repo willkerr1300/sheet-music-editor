@@ -4,25 +4,24 @@
 
 A real-time, collaborative sheet music editor built with **React**, **TypeScript**, and **WebSocket**. It enables multiple users to compose music simultaneously on a shared digital score, featuring a full Grand Staff (Treble + Bass) and automatic note distribution.
 
-![Project Status](https://img.shields.io/badge/status-active-success.svg)
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
-## 🚀 Key Features
+
+##  Key Features
 
 *   **Real-Time Collaboration**: Uses **Yjs CRDTs** (Conflict-free Replicated Data Types) to ensure eventual consistency across all connected clients without central locking.
 *   **Grand Staff Rendering**: Automatically renders both Treble and Bass staves using **VexFlow**, intelligently routing notes to the correct staff based on pitch.
 *   **Optimized Networking**: Implements a custom binary-encoded WebSocket protocol that reduces payload size by **~65%** compared to standard JSON.
 *   **High-Performance Rendering**: Features a differential rendering engine that updates only modified measures, maintaining **60 FPS** during active collaboration.
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 *   **Frontend**: React, TypeScript, Vite
 *   **Rendering**: VexFlow (Music Notation), Canvas/SVG
 *   **State / Sync**: Yjs (CRDT), y-websocket
 *   **Backend**: Node.js, Express, WebSocket (ws)
-*   **Deployment**: Render (Single Web Service Monolith)
+*   **Deployment**: Render
 
-## 📦 Local Development
+## Local Development
 
 1.  **Clone the repository**
     ```bash
@@ -42,15 +41,14 @@ A real-time, collaborative sheet music editor built with **React**, **TypeScript
     ```
     Open `http://localhost:5173` in your browser.
 
-## 🚢 Deployment
+## Deployment
 
 This project is configured for deployment on **Render** as a single web service.
 
 *   **Build Command**: `npm install && npm run build`
 *   **Start Command**: `node server/index.cjs`
-*   **Environment Variable**: `VITE_WS_URL=wss://your-app-name.onrender.com`
 
-## 🧪 Testing
+## Testing
 
 Run the test suite (Vitest + React Testing Library):
 

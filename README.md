@@ -20,7 +20,7 @@ A real-time, collaborative sheet music editor built with **React**, **TypeScript
 *   **Rendering**: VexFlow (Music Notation), Canvas/SVG
 *   **State / Sync**: Yjs (CRDT), y-websocket
 *   **Backend**: Node.js, Express, WebSocket (ws)
-*   **Deployment**: Render (Single Web Service Monolith)
+*   **Deployment**: Render
 
 ## 📦 Local Development
 

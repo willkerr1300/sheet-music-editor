@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import * as VF from 'vexflow';
 
 interface NoteData {
@@ -52,8 +52,7 @@ const Score: React.FC<ScoreProps> = ({ notes, timeSignature }) => {
         if (measures.length === 0) measures.push([]);
 
         // --- Selective Rendering (Diffing Logic) ---
-        // Instead of innerHTML = '', we manage child nodes
-        const children = Array.from(containerRef.current.children);
+
 
         // Ensure container has same number of DIVs as measures
         while (containerRef.current.children.length < measures.length) {

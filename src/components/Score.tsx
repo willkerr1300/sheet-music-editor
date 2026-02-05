@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as VF from 'vexflow';
 
 interface NoteData {
@@ -8,246 +8,119 @@ interface NoteData {
 
 interface ScoreProps {
     notes: NoteData[];
-    timeSignature: string; // e.g. "4/4", "3/4"
+    timeSignature: string;
 }
 
 const Score: React.FC<ScoreProps> = ({ notes, timeSignature }) => {
     const containerRef = useRef<HTMLDivElement>(null);
+    const prevNotesRef = useRef<NoteData[]>([]);
 
     useEffect(() => {
         if (!containerRef.current) return;
 
-        // Clear previous render
-        containerRef.current.innerHTML = '';
-
-        // Setup dimensions
-        const containerWidth = containerRef.current.clientWidth || 800; // Dynamic width
-        const rendererHeight = 600; // Initial height, can be large enough
-
-        // Create an SVG renderer and attach it to the DIV element
-        const renderer = new VF.Renderer(containerRef.current, VF.Renderer.Backends.SVG);
-        renderer.resize(containerWidth, rendererHeight);
-        const context = renderer.getContext();
-
-        // Parse Time Signature
+        // --- Helper to get duration in beats ---
         const [num, den] = timeSignature.split('/').map(Number);
         const beatsPerMeasure = num;
-        const beatValue = den; // e.g. 4 means quarter note gets the beat
+        const beatValue = den;
 
-        // Helper to get duration in "beats" (relative to the beatValue)
         const getDurationInBeats = (dur: string): number => {
-            const cleanDur = dur.replace('r', ''); // handle rests
-            // VexFlow duration '8' is 1/8th note. 'q' is 1/4. 'h' is 1/2. 'w' is 1.
-            // If beatValue is 4 (quarter note is beat):
-            // w=4, h=2, q=1, 8=0.5
-            // If beatValue is 8 (eighth note is beat):
-            // w=8, h=4, q=2, 8=1
-
-            // Standard ratios to whole note:
+            const cleanDur = dur.replace('r', '');
             let ratio = 0;
             if (cleanDur === 'w') ratio = 1;
             else if (cleanDur === 'h') ratio = 0.5;
             else if (cleanDur === 'q') ratio = 0.25;
             else if (cleanDur === '8') ratio = 0.125;
-
-            // Convert to beats: ratio * (beatValue * 1) ? 
-            // Wait, simple logic:
-            // 4/4: q=1. 3/4: q=1. 6/8: q=2 (since 8th is 1).
-            // Formula: ratio * beatValue doesn't work directly if beatValue is denominator..
-            // Logic: Whole note = 4 quarters = 8 eighths = 1.
-            // Bearts = ratio * 4 * (beatValue/4) ?? No.
-            // Simpler: 
-            // Value of whole note in current time sig beats = beatValue. (e.g. 4/4, whole=4 beats. 6/8, whole=8 beats).
-            // So beats = ratio * beatValue.
             return ratio * beatValue;
         };
 
-        // Group notes into Measures
+        // --- Grouping into Measures ---
         const measures: NoteData[][] = [];
         let currentMeasure: NoteData[] = [];
         let currentMeasureBeats = 0;
 
         notes.forEach(note => {
             const noteBeats = getDurationInBeats(note.duration);
-
-            // Check if adding this note exceeds the measure
-            if (currentMeasureBeats + noteBeats > beatsPerMeasure + 0.001) { // epsilon for float
-                // Start new measure
+            if (currentMeasureBeats + noteBeats > beatsPerMeasure + 0.001) {
                 measures.push(currentMeasure);
                 currentMeasure = [];
                 currentMeasureBeats = 0;
             }
-
             currentMeasure.push(note);
             currentMeasureBeats += noteBeats;
         });
+        if (currentMeasure.length > 0) measures.push(currentMeasure);
+        if (measures.length === 0) measures.push([]);
 
-        // Push the last partial measure if not empty
-        // Or if empty but we wan't at least one measure? 
-        // If notes is empty, currentMeasure is empty.
-        if (currentMeasure.length > 0) {
-            measures.push(currentMeasure);
-        } else if (measures.length === 0) {
-            // Ensure at least one empty measure is drawn
-            measures.push([]);
+        // --- Selective Rendering (Diffing Logic) ---
+        // Instead of innerHTML = '', we manage child nodes
+        const children = Array.from(containerRef.current.children);
+
+        // Ensure container has same number of DIVs as measures
+        while (containerRef.current.children.length < measures.length) {
+            const div = document.createElement('div');
+            div.className = 'measure-container';
+            containerRef.current.appendChild(div);
+        }
+        while (containerRef.current.children.length > measures.length) {
+            containerRef.current.lastChild?.remove();
         }
 
-        // --- Rendering Logic ---
+        measures.forEach((measureNotes, idx) => {
+            const measureDiv = containerRef.current!.children[idx] as HTMLDivElement;
 
-        let x = 10;
-        let y = 40;
-        // Calculate safe width for a measure. 
-        // Initial stave (with clef/keys) needs more space.
-        // Subsequent staves need less.
-
-        // We need to group by "Systems" (lines).
-        // Let's iterate measures and place staves.
-
-        measures.forEach((measureNotes) => {
-            // Determine width. First measure of system needs clef/time sig.
-
-            let width = 250; // default width for a measure
-            if (measureNotes.length > 4) width += (measureNotes.length - 4) * 30; // expand for many notes
-
-            // Check if we need to wrap to next line
-            if (x + width > containerWidth - 10) {
-                x = 10;
-                y += 250; // Move down for next system (Treble + Bass + spacing)
+            // Basic Diffing: Check if notes in this measure changed
+            // In a production app, we'd use a more robust hash.
+            const notesJson = JSON.stringify(measureNotes);
+            if (measureDiv.dataset.notes === notesJson && measureDiv.dataset.ts === timeSignature) {
+                return; // Skip re-render for this measure
             }
 
-            // 1. Create Staves
-            // Treble
-            const trebleStave = new VF.Stave(x, y, width);
-            // Bass
-            const bassStave = new VF.Stave(x, y + 110, width); // 110 gap
+            // Update measure
+            measureDiv.innerHTML = '';
+            measureDiv.dataset.notes = notesJson;
+            measureDiv.dataset.ts = timeSignature;
 
-            // Add Clef/TimeSig/KeySig ONLY if it's the start of a line (or first measure)
-            if (x === 10) {
-                trebleStave.addClef("treble");
-                bassStave.addClef("bass");
+            const width = 250 + (measureNotes.length > 4 ? (measureNotes.length - 4) * 30 : 0);
+            const renderer = new VF.Renderer(measureDiv, VF.Renderer.Backends.SVG);
+            renderer.resize(width, 150);
+            const context = renderer.getContext();
 
-                // Add time signature only on the very first measure (standard) 
-                // OR on every system? Standard is usually just start, but for editors often useful on new lines.
-                // Let's do standard: First measure only, OR if time sig changes (not supported yet).
-                // Actually, let's put it on every system for clarity in this simple editor, 
-                // OR just the first one. Let's stick to first one for "proper" look, 
-                // but usually editors replicate key/clef on new lines.
-                trebleStave.addTimeSignature(timeSignature);
-                bassStave.addTimeSignature(timeSignature);
+            const stave = new VF.Stave(0, 0, width);
+            if (idx === 0) {
+                stave.addClef("treble").addTimeSignature(timeSignature);
             }
+            stave.setContext(context).draw();
 
-            trebleStave.setContext(context).draw();
-            bassStave.setContext(context).draw();
-
-            // Connectors (Start of system)
-            if (x === 10) {
-                const connector = new VF.StaveConnector(trebleStave, bassStave);
-                connector.setType(VF.StaveConnector.type.BRACE);
-                connector.setContext(context).draw();
-
-                const line = new VF.StaveConnector(trebleStave, bassStave);
-                line.setType(VF.StaveConnector.type.SINGLE_LEFT);
-                line.setContext(context).draw();
-            }
-
-            // Measure End Barline (Single Right) for all measures
-            const lineRight = new VF.StaveConnector(trebleStave, bassStave);
-            lineRight.setType(VF.StaveConnector.type.SINGLE_RIGHT); // Draws a line at the end
-            lineRight.setContext(context).draw();
-
-            // 2. Process Notes for this Measure
-            // Separate Notes into Treble and Bass
-            const trebleNotesData: NoteData[] = [];
-            const bassNotesData: NoteData[] = [];
-
-            measureNotes.forEach(n => {
-                const isTreble = n.keys.some(key => {
-                    const octave = parseInt(key.split('/')[1]);
-                    return octave >= 4;
-                });
-                if (isTreble) trebleNotesData.push(n);
-                else bassNotesData.push(n);
-            });
-
-            // Helper to create VexFlow notes
-            const createVexFlowNotes = (noteDataList: NoteData[], clef: string) => {
-                return noteDataList.map(n => {
-                    const note = new VF.StaveNote({
-                        keys: n.keys,
-                        duration: n.duration,
-                        clef: clef
+            if (measureNotes.length > 0) {
+                const vfNotes = measureNotes.map(n => {
+                    const sn = new VF.StaveNote({ keys: n.keys, duration: n.duration, clef: "treble" });
+                    n.keys.forEach((key, kIdx) => {
+                        const acc = key.split('/')[0].substring(1);
+                        if (acc) sn.addModifier(new VF.Accidental(acc), kIdx);
                     });
-                    n.keys.forEach((key, index) => {
-                        const [pitchPart] = key.split('/');
-                        // pitchPart is something like "c", "c#", "db", "b", "bb"
-                        // The first character is always the note name (c,d,e,f,g,a,b)
-                        // The rest is the accidental
-                        const accidentalSymbol = pitchPart.substring(1);
-                        if (accidentalSymbol) {
-                            note.addModifier(new VF.Accidental(accidentalSymbol), index);
-                        }
-                    });
-                    return note;
+                    return sn;
                 });
-            };
 
-            // 3. Render Voices
-            // We MUST have tickables for a voice. If empty, we need a GhostNote or just don't draw voice?
-            // VexFlow formatting requires voices to allow proper spacing. 
-
-            const voices: VF.Voice[] = [];
-            let trebleVoice: VF.Voice | null = null;
-            let bassVoice: VF.Voice | null = null;
-
-            if (trebleNotesData.length > 0) {
-                const trebleVexNotes = createVexFlowNotes(trebleNotesData, "treble");
-                trebleVoice = new VF.Voice({ numBeats: beatsPerMeasure, beatValue: beatValue });
-                trebleVoice.setMode(VF.Voice.Mode.SOFT);
-                trebleVoice.addTickables(trebleVexNotes);
-                voices.push(trebleVoice);
+                const voice = new VF.Voice({ numBeats: beatsPerMeasure, beatValue: beatValue });
+                voice.addTickables(vfNotes);
+                new VF.Formatter().joinVoices([voice]).format([voice], width - 50);
+                voice.draw(context, stave);
             }
-
-            if (bassNotesData.length > 0) {
-                const bassVexNotes = createVexFlowNotes(bassNotesData, "bass");
-                bassVoice = new VF.Voice({ numBeats: beatsPerMeasure, beatValue: beatValue });
-                bassVoice.setMode(VF.Voice.Mode.SOFT);
-                bassVoice.addTickables(bassVexNotes);
-                voices.push(bassVoice);
-            }
-
-            // Format and Draw
-            if (voices.length > 0) {
-                // Calculate available width. 
-                // trebleStave.getNoteStartX() returns the x coordinate where notes begin.
-                // stave.getX() returns the start x of the stave.
-                // useful width = stave.getWidth() - (stave.getNoteStartX() - stave.getX()) - padding
-                const startX = trebleStave.getNoteStartX();
-                const availableWidth = Math.max(50, width - (startX - trebleStave.getX()) - 10);
-
-                new VF.Formatter().joinVoices(voices).format(voices, availableWidth);
-
-                if (trebleVoice) trebleVoice.draw(context, trebleStave);
-                if (bassVoice) bassVoice.draw(context, bassStave);
-            }
-
-            x += width;
         });
 
-        // Resize container height to fit final Y
-        // We set 600 initially, but we can update the SVG style just to be sure.
-        const finalHeight = y + 250;
-        renderer.resize(containerWidth, finalHeight);
-
+        prevNotesRef.current = notes;
     }, [notes, timeSignature]);
 
-    return <div ref={containerRef} style={{
-        border: '1px solid #334155',
-        padding: '20px',
-        borderRadius: '12px',
-        background: 'white',
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-        overflowX: 'hidden' // Prevent internal scroll, let container wrap
-    }}></div>;
+    return (
+        <div ref={containerRef} className="score-flex-container" style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '10px',
+            background: 'white',
+            padding: '20px',
+            borderRadius: '12px'
+        }}></div>
+    );
 };
 
 export default Score;

@@ -100,7 +100,7 @@ const Score: React.FC<ScoreProps> = ({ notes, timeSignature }) => {
                     return sn;
                 });
 
-                const voice = new VF.Voice({ num_beats: beatsPerMeasure, beat_value: beatValue });
+                const voice = new VF.Voice({ numBeats: beatsPerMeasure, beatValue: beatValue });
                 voice.setStrict(false);
                 voice.addTickables(vfNotes);
                 new VF.Formatter().joinVoices([voice]).format([voice], width - 50);
